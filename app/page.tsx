@@ -4,6 +4,7 @@ export default function Home() {
       <div className="space-y-4">
         <h1 className="text-4xl font-semibold tracking-tight text-amber-950">
           Hello World
+          -Yahya ElGawady
         </h1>
         <p className="text-5xl" aria-label="Smiley face">
           🙂
