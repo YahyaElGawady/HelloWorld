@@ -8,12 +8,17 @@ type CaptionRow = {
 
 const CAPTIONS_LIMIT = 10;
 
-async function fetchCaptions(): Promise<CaptionRow[]> {
+type CaptionsResult = {
+  data: CaptionRow[];
+  error: string | null;
+};
+
+async function fetchCaptions(): Promise<CaptionsResult> {
   const baseUrl = process.env.SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY;
 
   if (!baseUrl || !anonKey) {
-    return [];
+    return { data: [], error: "Missing SUPABASE_URL or SUPABASE_ANON_KEY." };
   }
 
   const params = new URLSearchParams({
@@ -31,14 +36,18 @@ async function fetchCaptions(): Promise<CaptionRow[]> {
   });
 
   if (!response.ok) {
-    return [];
+    const errorText = await response.text();
+    return {
+      data: [],
+      error: `Supabase error ${response.status}: ${errorText || response.statusText}`,
+    };
   }
 
-  return response.json();
+  return { data: await response.json(), error: null };
 }
 
 export default async function Home() {
-  const captions = await fetchCaptions();
+  const { data: captions, error } = await fetchCaptions();
 
   return (
     <main className="min-h-screen bg-amber-50 px-6 py-16 text-amber-950">
@@ -55,7 +64,9 @@ export default async function Home() {
             <span className="text-sm text-amber-700">Showing {CAPTIONS_LIMIT}</span>
           </div>
 
-          {captions.length === 0 ? (
+          {error ? (
+            <p className="mt-6 text-amber-700">{error}</p>
+          ) : captions.length === 0 ? (
             <p className="mt-6 text-amber-700">
               No captions found yet (or missing Supabase env vars).
             </p>
